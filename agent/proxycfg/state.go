@@ -582,6 +582,7 @@ func (s *state) initialConfigSnapshot() ConfigSnapshot {
 		snap.ConnectProxy.WatchedServiceChecks = make(map[structs.ServiceID][]structs.CheckType)
 		snap.ConnectProxy.PreparedQueryEndpoints = make(map[string]structs.CheckServiceNodes)
 		snap.ConnectProxy.UpstreamConfig = make(map[string]*structs.Upstream)
+		snap.ConnectProxy.PassthroughEndpoints = make(map[string]struct{})
 	case structs.ServiceKindTerminatingGateway:
 		snap.TerminatingGateway.WatchedServices = make(map[structs.ServiceName]context.CancelFunc)
 		snap.TerminatingGateway.WatchedIntentions = make(map[structs.ServiceName]context.CancelFunc)
@@ -930,6 +931,13 @@ func (s *state) handleUpdateUpstreams(u cache.UpdateEvent, snap *ConfigSnapshotU
 			snap.WatchedUpstreamEndpoints[svc] = make(map[string]structs.CheckServiceNodes)
 		}
 		snap.WatchedUpstreamEndpoints[svc][targetID] = resp.Nodes
+
+		for _, node := range resp.Nodes {
+			if node.Service.Proxy.TransparentProxy.DialedDirectly {
+				addr, _ := node.Service.BestAddress(false)
+				snap.PassthroughEndpoints[addr] = struct{}{}
+			}
+		}
 
 	case strings.HasPrefix(u.CorrelationID, "mesh-gateway:"):
 		resp, ok := u.Result.(*structs.IndexedNodesWithGateways)

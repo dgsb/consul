@@ -96,9 +96,15 @@ const (
 
 	// OriginalDestinationClusterName is the name we give to the passthrough
 	// cluster which redirects transparently-proxied requests to their original
-	// destination. This cluster prevents Consul from blocking connections to
-	// destinations outside of the catalog when in transparent proxy mode.
+	// destination outside the mesh. This cluster prevents Consul from blocking
+	// connections to destinations outside of the catalog when in transparent
+	// proxy mode.
 	OriginalDestinationClusterName = "original-destination"
+
+	// MeshPassthroughClusterName is the name we give to the passthrough
+	// cluster which redirects transparently-proxied requests to endpoints
+	// in the mesh. For this cluster we present a client certificate.
+	MeshPassthroughClusterName = "mesh-passthrough"
 
 	// DefaultAuthCheckFrequency is the default value for
 	// Server.AuthCheckFrequency to use when the zero value is provided.
